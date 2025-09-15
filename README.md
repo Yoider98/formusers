@@ -127,8 +127,8 @@ Las pruebas cubren la lógica de los modelos y el provider, asegurando la correc
 ## 👨‍💻 Autor
 
 **Yoider Yancy**
-- GitHub: [@tu-usuario](https://github.com/Yoider98)
-- LinkedIn: [tu-perfil](https://www.linkedin.com/in/yoider-j-yancy-acu%C3%B1a/)
+- GitHub: [@Yoider98](https://github.com/Yoider98)
+- LinkedIn: [Yoider Yancy](https://www.linkedin.com/in/yoider-j-yancy-acu%C3%B1a/)
 
 ## Licencia
 
