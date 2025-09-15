@@ -2,12 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:formusers/features/user/view/home_screen.dart';
 import 'package:provider/provider.dart';
 import 'features/user/provider/user_provider.dart';
+import 'features/user/services/user_service.dart';
+import 'data/repositories/user_repository.dart';
 
 void main() {
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => UserProvider()),
+        Provider<UserRepository>(
+          create: (_) => UserRepositoryImpl(),
+        ),
+        Provider<UserService>(
+          create: (context) => UserService(context.read<UserRepository>()),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => UserProvider(context.read<UserService>()),
+        ),
       ],
       child: const MyApp(),
     ),

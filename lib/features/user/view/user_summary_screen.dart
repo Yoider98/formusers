@@ -12,6 +12,42 @@ class UserSummaryScreen extends StatelessWidget {
     final userProvider = context.watch<UserProvider>();
     final user = userProvider.currentUser;
 
+    if (userProvider.isLoading) {
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    if (userProvider.hasError) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text("Error"),
+          backgroundColor: Colors.red,
+        ),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.error, size: 64, color: Colors.red),
+              const SizedBox(height: 16),
+              Text(
+                userProvider.error ?? "Error desconocido",
+                style: const TextStyle(fontSize: 16),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () => userProvider.clearError(),
+                child: const Text("Reintentar"),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     if (user == null) {
       return const Scaffold(
         body: Center(
@@ -44,7 +80,7 @@ class UserSummaryScreen extends StatelessWidget {
             onPressed: () async {
               final updatedUser = await _showEditUserDialog(context, user);
               if (updatedUser != null) {
-                userProvider.editUserData(
+                await userProvider.editUserData(
                   firstName: updatedUser.firstName,
                   lastName: updatedUser.lastName,
                   birthDate: updatedUser.birthDate,
@@ -58,7 +94,6 @@ class UserSummaryScreen extends StatelessWidget {
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            // 📌 Card con info de usuario
             Card(
               elevation: 6,
               shape: RoundedRectangleBorder(
@@ -106,12 +141,23 @@ class UserSummaryScreen extends StatelessWidget {
                         ),
                       ],
                     ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        const Icon(Icons.calendar_today,
+                            color: Colors.blueAccent),
+                        const SizedBox(width: 10),
+                        Text(
+                          "Edad: ${user.age} años",
+                          style: const TextStyle(fontSize: 16),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ),
             ),
             const SizedBox(height: 30),
-
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -139,7 +185,8 @@ class UserSummaryScreen extends StatelessWidget {
                             leading: const Icon(Icons.home,
                                 color: Colors.blueAccent),
                             title: Text("${address.street}, ${address.city}"),
-                            subtitle: Text(address.country),
+                            subtitle: Text(
+                                "${address.municipality}, ${address.department}, ${address.country}"),
                             trailing: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
@@ -151,7 +198,7 @@ class UserSummaryScreen extends StatelessWidget {
                                         await _showEditAddressDialog(
                                             context, address);
                                     if (updatedAddress != null) {
-                                      userProvider.editAddress(
+                                      await userProvider.editAddress(
                                           index, updatedAddress);
                                     }
                                   },
@@ -159,8 +206,8 @@ class UserSummaryScreen extends StatelessWidget {
                                 IconButton(
                                   icon: const Icon(Icons.delete,
                                       color: Colors.redAccent),
-                                  onPressed: () {
-                                    userProvider.removeAddress(index);
+                                  onPressed: () async {
+                                    await userProvider.removeAddress(index);
                                   },
                                 ),
                               ],
@@ -173,14 +220,13 @@ class UserSummaryScreen extends StatelessWidget {
                 ],
               ),
             ),
-
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
                 onPressed: () async {
                   final newAddress = await _showAddAddressDialog(context);
                   if (newAddress != null) {
-                    userProvider.addAddress(newAddress);
+                    await userProvider.addAddress(newAddress);
                   }
                 },
                 icon: const Icon(Icons.add_location_alt, color: Colors.white),
@@ -288,6 +334,10 @@ class UserSummaryScreen extends StatelessWidget {
       BuildContext context, Address address) {
     final streetController = TextEditingController(text: address.street);
     final cityController = TextEditingController(text: address.city);
+    final departmentController =
+        TextEditingController(text: address.department);
+    final municipalityController =
+        TextEditingController(text: address.municipality);
     final countryController = TextEditingController(text: address.country);
 
     return showDialog<Address>(
@@ -315,6 +365,20 @@ class UserSummaryScreen extends StatelessWidget {
                 ),
               ),
               TextField(
+                controller: departmentController,
+                decoration: const InputDecoration(
+                  labelText: "Departamento",
+                  prefixIcon: Icon(Icons.location_on),
+                ),
+              ),
+              TextField(
+                controller: municipalityController,
+                decoration: const InputDecoration(
+                  labelText: "Municipio",
+                  prefixIcon: Icon(Icons.location_city),
+                ),
+              ),
+              TextField(
                 controller: countryController,
                 decoration: const InputDecoration(
                   labelText: "País",
@@ -333,6 +397,8 @@ class UserSummaryScreen extends StatelessWidget {
                 final updated = Address(
                   street: streetController.text,
                   city: cityController.text,
+                  department: departmentController.text,
+                  municipality: municipalityController.text,
                   country: countryController.text,
                 );
                 Navigator.pop(context, updated);
@@ -348,6 +414,8 @@ class UserSummaryScreen extends StatelessWidget {
   Future<Address?> _showAddAddressDialog(BuildContext context) {
     final streetController = TextEditingController();
     final cityController = TextEditingController();
+    final departmentController = TextEditingController();
+    final municipalityController = TextEditingController();
     final countryController = TextEditingController();
 
     return showDialog<Address>(
@@ -375,6 +443,20 @@ class UserSummaryScreen extends StatelessWidget {
                 ),
               ),
               TextField(
+                controller: departmentController,
+                decoration: const InputDecoration(
+                  labelText: "Departamento",
+                  prefixIcon: Icon(Icons.location_on),
+                ),
+              ),
+              TextField(
+                controller: municipalityController,
+                decoration: const InputDecoration(
+                  labelText: "Municipio",
+                  prefixIcon: Icon(Icons.location_city),
+                ),
+              ),
+              TextField(
                 controller: countryController,
                 decoration: const InputDecoration(
                   labelText: "País",
@@ -393,6 +475,8 @@ class UserSummaryScreen extends StatelessWidget {
                 final newAddress = Address(
                   street: streetController.text,
                   city: cityController.text,
+                  department: departmentController.text,
+                  municipality: municipalityController.text,
                   country: countryController.text,
                 );
                 Navigator.pop(context, newAddress);

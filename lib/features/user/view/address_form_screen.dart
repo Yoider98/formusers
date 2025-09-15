@@ -15,6 +15,8 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
   final _formKey = GlobalKey<FormState>();
   final _streetController = TextEditingController();
   final _cityController = TextEditingController();
+  final _departmentController = TextEditingController();
+  final _municipalityController = TextEditingController();
   final _countryController = TextEditingController();
 
   @override
@@ -91,6 +93,44 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
                       ),
                       const SizedBox(height: 15),
                       TextFormField(
+                        controller: _departmentController,
+                        decoration: InputDecoration(
+                          labelText: "Departamento",
+                          prefixIcon: const Icon(Icons.location_on_outlined),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          filled: true,
+                          fillColor: Colors.grey[100],
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return "Ingrese el departamento";
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 15),
+                      TextFormField(
+                        controller: _municipalityController,
+                        decoration: InputDecoration(
+                          labelText: "Municipio",
+                          prefixIcon: const Icon(Icons.location_city),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          filled: true,
+                          fillColor: Colors.grey[100],
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return "Ingrese el municipio";
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 15),
+                      TextFormField(
                         controller: _countryController,
                         decoration: InputDecoration(
                           labelText: "País",
@@ -112,23 +152,30 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
-                          onPressed: () {
+                          onPressed: () async {
                             if (_formKey.currentState!.validate()) {
                               final address = Address(
                                 street: _streetController.text,
                                 city: _cityController.text,
+                                department: _departmentController.text,
+                                municipality: _municipalityController.text,
                                 country: _countryController.text,
                               );
-                              userProvider.addAddress(address);
+                              await userProvider.addAddress(address);
                               _streetController.clear();
                               _cityController.clear();
+                              _departmentController.clear();
+                              _municipalityController.clear();
                               _countryController.clear();
 
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (_) => const UserSummaryScreen()),
-                              );
+                              if (!userProvider.hasError) {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (_) =>
+                                          const UserSummaryScreen()),
+                                );
+                              }
                             }
                           },
                           style: ElevatedButton.styleFrom(
@@ -179,7 +226,8 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
                         child: ListTile(
                           leading: const Icon(Icons.home, color: Colors.blue),
                           title: Text("${address.street}, ${address.city}"),
-                          subtitle: Text(address.country),
+                          subtitle: Text(
+                              "${address.municipality}, ${address.department}, ${address.country}"),
                         ),
                       );
                     },

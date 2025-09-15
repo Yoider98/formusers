@@ -124,19 +124,31 @@ class _UserFormScreenState extends State<UserFormScreen> {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: () {
+                      onPressed: () async {
                         if (_formKey.currentState!.validate() &&
                             _birthDate != null) {
-                          context.read<UserProvider>().createUser(
+                          await context.read<UserProvider>().createUser(
                                 _firstNameController.text,
                                 _lastNameController.text,
                                 _birthDate!,
                               );
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (_) => const AddressFormScreen()),
-                          );
+
+                          if (!context.read<UserProvider>().hasError) {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (_) => const AddressFormScreen()),
+                            );
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                    context.read<UserProvider>().error ??
+                                        "Error desconocido"),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                          }
                         } else if (_birthDate == null) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
